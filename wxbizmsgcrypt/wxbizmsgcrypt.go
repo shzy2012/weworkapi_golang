@@ -73,7 +73,7 @@ func NewWXBizMsg4Send(encrypt, signature, timestamp, nonce string) *WXBizMsg4Sen
 
 type ProtocolProcessor interface {
 	parse(src_data []byte) (*WXBizMsg4Recv, *CryptError)
-	parseJsonFormat(src_data []byte) (*WXBizMsg4Recv, *CryptError)
+	parseJsonData(src_data []byte) (*WXBizMsg4Recv, *CryptError)
 	serialize(msg_send *WXBizMsg4Send) ([]byte, *CryptError)
 }
 
@@ -98,7 +98,7 @@ func (self *XmlProcessor) parse(src_data []byte) (*WXBizMsg4Recv, *CryptError) {
 }
 
 // json格式解析
-func (self *XmlProcessor) parseJsonFormat(src_data []byte) (*WXBizMsg4Recv, *CryptError) {
+func (self *XmlProcessor) parseJsonData(src_data []byte) (*WXBizMsg4Recv, *CryptError) {
 	var msg4_recv WXBizMsg4Recv
 	err := json.Unmarshal(src_data, &msg4_recv)
 	if nil != err {
@@ -328,7 +328,7 @@ func (self *WXBizMsgCrypt) DecryptMsg(msg_signature, timestamp, nonce string, po
 }
 
 func (self *WXBizMsgCrypt) DecryptJsonMsg(msg_signature, timestamp, nonce string, post_data []byte) ([]byte, *CryptError) {
-	msg4_recv, crypt_err := self.protocol_processor.parseJsonFormat(post_data)
+	msg4_recv, crypt_err := self.protocol_processor.parseJsonData(post_data)
 	if nil != crypt_err {
 		return nil, crypt_err
 	}
