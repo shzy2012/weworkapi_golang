@@ -7,6 +7,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"math/rand"
@@ -72,6 +73,7 @@ func NewWXBizMsg4Send(encrypt, signature, timestamp, nonce string) *WXBizMsg4Sen
 
 type ProtocolProcessor interface {
 	parse(src_data []byte) (*WXBizMsg4Recv, *CryptError)
+	parseJsonFormat(src_data []byte) (*WXBizMsg4Recv, *CryptError)
 	serialize(msg_send *WXBizMsg4Send) ([]byte, *CryptError)
 }
 
@@ -85,11 +87,22 @@ type WXBizMsgCrypt struct {
 type XmlProcessor struct {
 }
 
+// xml格式解析(默认)
 func (self *XmlProcessor) parse(src_data []byte) (*WXBizMsg4Recv, *CryptError) {
 	var msg4_recv WXBizMsg4Recv
 	err := xml.Unmarshal(src_data, &msg4_recv)
 	if nil != err {
 		return nil, NewCryptError(ParseXmlError, "xml to msg fail")
+	}
+	return &msg4_recv, nil
+}
+
+// json格式解析
+func (self *XmlProcessor) parseJsonFormat(src_data []byte) (*WXBizMsg4Recv, *CryptError) {
+	var msg4_recv WXBizMsg4Recv
+	err := json.Unmarshal(src_data, &msg4_recv)
+	if nil != err {
+		return nil, NewCryptError(ParseJsonError, "json to msg fail")
 	}
 	return &msg4_recv, nil
 }
@@ -287,6 +300,35 @@ func (self *WXBizMsgCrypt) EncryptMsg(reply_msg, timestamp, nonce string) ([]byt
 
 func (self *WXBizMsgCrypt) DecryptMsg(msg_signature, timestamp, nonce string, post_data []byte) ([]byte, *CryptError) {
 	msg4_recv, crypt_err := self.protocol_processor.parse(post_data)
+	if nil != crypt_err {
+		return nil, crypt_err
+	}
+
+	signature := self.calSignature(timestamp, nonce, msg4_recv.Encrypt)
+
+	if strings.Compare(signature, msg_signature) != 0 {
+		return nil, NewCryptError(ValidateSignatureError, "signature not equal")
+	}
+
+	plaintext, crypt_err := self.cbcDecrypter(msg4_recv.Encrypt)
+	if nil != crypt_err {
+		return nil, crypt_err
+	}
+
+	_, _, msg, receiver_id, crypt_err := self.ParsePlainText(plaintext)
+	if nil != crypt_err {
+		return nil, crypt_err
+	}
+
+	if len(self.receiver_id) > 0 && strings.Compare(string(receiver_id), self.receiver_id) != 0 {
+		return nil, NewCryptError(ValidateCorpidError, "receiver_id is not equil")
+	}
+
+	return msg, nil
+}
+
+func (self *WXBizMsgCrypt) DecryptJsonMsg(msg_signature, timestamp, nonce string, post_data []byte) ([]byte, *CryptError) {
+	msg4_recv, crypt_err := self.protocol_processor.parseJsonFormat(post_data)
 	if nil != crypt_err {
 		return nil, crypt_err
 	}

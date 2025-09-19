@@ -1,36 +1,50 @@
 ## weworkapi_golang
 
-weworkapi_golang 是为了简化开发者对企业微信API接口的使用而设计的，API调用加解密库之golang版本 
+weworkapi_golang 是为了简化开发者对企业微信 API 接口的使用而设计的，API 调用加解密库之 golang 版本
+
+原项目地址：https://github.com/sbzhu/weworkapi_golang
+
+## 新增功能
+
+新增了 json 格式解析，用于解析企业微信 ai-bot 消息解析
+
+## 使用方法
+
+```go
+var wxCPT = wxbizmsgcrypt.NewWXBizMsgCrypt(token, encodingAESKey, "" /*填写空*/)
+
+// 解密json格式消息
+reqMsgSign := "424304741b33d9c5a2f2d47d5b7b628f998256e1"
+reqTimestamp := "1758262742"
+reqNonce := "1758032071"
+postData := `{"encrypt":"zyrg060K\/LGlKQw+2oAN4s8+RnjA0gQXaGQw\/JlXAysMvSFDMFIgfFAz2MW4dqZbVbbDsX6pArh5n0VEsXrgglIyF+BcvS0oKFCYQQ4bLr\/P8VAWEvcXhH6TZm17Yvsedso\/NfNCvKrLKgOq7eJ\/ySkWpFYpSulG7M8MKSYaEDvV9KqvC7kDhFNkuZdHQHZR8VDHBa+YIPZ7vcQlZXx2unZgHhdPVajLIVoXuZ562Cxa2zOpzwQFkisAsAZCyG7WqIw5TrQk\/EojlumvbSzofM+zj55kjFB3i3iy4\/5orlE="}`
+
+msg, cryptErr := wxCPT.DecryptJsonMsg(reqMsgSign, reqTimestamp, reqNonce, []byte(postData))
+if nil != cryptErr {
+	log.Println("DecryptJsonMsg fail", cryptErr)
+}
+
+log.Printf("msg: %s\n", string(msg))
+```
+
+## 解析结果
+
+```json
+{
+  "msgid": "e289f069c2be0d73d789d1824ee8e7d1",
+  "aibotid": "aib_xxx",
+  "chattype": "single",
+  "from": {
+    "userid": "xxx"
+  },
+  "msgtype": "text",
+  "text": {
+    "content": "Hi"
+  }
+}
+```
 
 ## Usage
 
 将本项目下载到你的目录，既可直接引用相关文件  
 详细使用方法参考[sample.go](https://github.com/sbzhu/weworkapi_golang/blob/master/sample.go)代码
-
-## About
-
-**本库仅做示范用，并不保证完全无bug**
-
-作者会不定期更新本库，但不保证与官方API接口文档同步，因此一切以[官方文档](https://work.weixin.qq.com/api/doc)为准。
-
-更多来自个人开发者的其它语言的库推荐：
-
-python:
-
-* https://github.com/sbzhu/weworkapi_python  abelzhu@tencent.com(企业微信团队)
-
-ruby:
-
-* https://github.com/mycolorway/wework  MyColorway(个人开发者)
-
-php:
-
-* https://github.com/sbzhu/weworkapi_php  abelzhu@tencent.com; xiqunpan@tencent.com(企业微信团队)
-
-golang: 
-
-* https://github.com/sbzhu/weworkapi_golang  ryanjelin@tencent.com(企业微信团队)
-* https://github.com/doubliekill/EnterpriseWechatSDK  1006401052yh@gmail.com(个人开发者)
-
-## Contact us
-ryanjelin@tencent.com  
