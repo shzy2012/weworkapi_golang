@@ -1,5 +1,5 @@
-module github.com/sbzhu/weworkapi_golang
+module github.com/shzy2012/weworkapi_golang
 
 go 1.14
 
-replace github.com/sbzhu/weworkapi_golang/wxbizmsgcrypt => ./wxbizmsgcrypt
+replace github.com/shzy2012/weworkapi_golang/wxbizmsgcrypt => ./wxbizmsgcrypt
