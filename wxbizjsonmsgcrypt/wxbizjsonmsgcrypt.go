@@ -66,7 +66,7 @@ func generateResponseJSON(encrypt, signature, timestamp, nonce string) string {
     "msgsignature": "%s",
     "timestamp": "%s",
     "nonce": "%s"
-	}`
+}`
 	return fmt.Sprintf(template, encrypt, signature, timestamp, nonce)
 }
 
